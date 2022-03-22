@@ -2,16 +2,18 @@ const uuid = require("uuid");
 const speakEasy = require("speakeasy");
 const { JsonDB } = require("node-json-db");
 const { Config } = require("node-json-db/dist/lib/JsonDBConfig");
+const qrcode = require("qrcode");
 const db = new JsonDB(
   new Config("twoFactorAuthenticationDb", true, false, "/")
 );
-const twoFactorAuthenticationGeneration = (req, res) => {
+const twoFactorAuthenticationGeneration = async (req, res) => {
   const id = uuid.v4();
   try {
     const path = `/user/${id}`;
     const temp_secret = speakEasy.generateSecret();
+    const qrData = await qrcode.toDataURL(temp_secret.otpauth_url);
     db.push(path, { id, temp_secret });
-    res.send({ userId: id, temp_secret: temp_secret.base32 });
+    res.send({ userId: id, temp_secret: temp_secret.base32, qrData: qrData });
   } catch (error) {
     console.log(error);
     res.send({ errorMessage: "Something went wrong." });
