@@ -19,6 +19,16 @@ const twoFactorAuthenticationGeneration = async (req, res) => {
     res.send({ errorMessage: "Something went wrong." });
   }
 };
+
+const getTwofactorAuthenticationTOTPCode = (req, res) => {
+  const code = speakEasy.totp({
+    secret: req.body.secret,
+    encoding: "base32",
+  });
+  const remainingTime = 30 - Math.floor((new Date().getTime() / 1000) % 30);
+  res.status(200).send({ secretCode: code, remainingTime: remainingTime });
+};
+
 const twoFactorAuthenticationVerify = (req, res) => {
   const { id, token } = req.body;
   try {
@@ -72,6 +82,7 @@ const twoFactorAuthenticationValidation = (req, res) => {
 
 module.exports = {
   twoFactorAuthenticationGeneration,
+  getTwofactorAuthenticationTOTPCode,
   twoFactorAuthenticationVerify,
   twoFactorAuthenticationValidation,
 };
